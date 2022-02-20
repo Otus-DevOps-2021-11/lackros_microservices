@@ -41,3 +41,4 @@ lackros microservices repository
  - Параметры указаны в файле lackros.env и lackros.env.example
  - Базовое имя образуется из имени папки с проектом src_***. Изменить можно добавив параметр -p, --project-name NAME
  - Запускается например вот так: docker-compose -p LALALA up -d
+ - new line
