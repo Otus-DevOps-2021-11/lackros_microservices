@@ -14,11 +14,22 @@ services:
     image: ${USER_NAME}/ui:${VERS}
     ports:
       - ${PORTUI}:${PORTUI}/tcp
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: service.ui
     networks:
       - front_net
+
   post:
     build: ../src/post-py
     image: ${USER_NAME}/post:${VERS}
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: service.post
     networks:
       back_net:
         aliases:
