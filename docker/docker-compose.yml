@@ -11,7 +11,7 @@ services:
           - post_db
   ui:
     build: ../src/ui
-    image: ${USER_NAME}/ui:${VERS}
+    image: ${USERNAME}/ui:${VERS}
     ports:
       - ${PORTUI}:${PORTUI}/tcp
     logging:
@@ -24,7 +24,7 @@ services:
 
   post:
     build: ../src/post-py
-    image: ${USER_NAME}/post:${VERS}
+    image: ${USERNAME}/post:${VERS}
     logging:
       driver: "fluentd"
       options:
@@ -39,7 +39,7 @@ services:
           - post
   comment:
     build: ../src/comment
-    image: ${USER_NAME}/comment:${VERS}
+    image: ${USERNAME}/comment:${VERS}
     networks:
       back_net:
         aliases:
@@ -48,7 +48,7 @@ services:
         aliases:
           - comment
   prometheus:
-    image: ${USER_NAME}/prometheus
+    image: ${USERNAME}/prometheus
     ports:
       - '9090:9090'
     volumes:
