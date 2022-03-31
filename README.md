@@ -60,3 +60,10 @@ lackros microservices repository
  - Добавили в конфиг docker-compose еще и контейнер с node_explorer
  - Отправили последние образы докер контейнеров в свой репозиторий
  - Докер хаб с моей репозиторией https://hub.docker.com/repository/docker/lackros/prometheus
+
+# Выполнено ДЗ по Лекции №25: Применение системы логирования в инфраструктуре на основе Docker
+ - Развернута тестовая среда в облаке 2 ядра, 8гб оперативной памяти и 50гб hdd
+ - Развернут docker-machine
+ - Создан файл docker-compose файл для запуска стека EFK и ZIPKIN
+ - Создан образ докер-контейнера FLUENTD, с рабочим конфигом
+ - Создан файл docker-compose для запуска приложения и ZIPKIN
