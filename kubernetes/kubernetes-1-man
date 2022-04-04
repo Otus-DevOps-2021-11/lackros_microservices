@@ -1,0 +1,104 @@
+yc compute instance create \
+  --name master1 \
+  --hostname master1 \
+  --platform standard-v3 \
+  --memory 8GB \
+  --cores 4 \
+  --core-fraction 100 \
+  --zone ru-central1-a \
+  --network-interface subnet-name=default-ru-central1-a,nat-ip-version=ipv4,nat-address=84.252.128.77 \
+  --create-boot-disk image-folder-id=standard-images,image-family=ubuntu-2004-lts,type=network-ssd,size=50 \
+  --ssh-key ~/.ssh/id_rsa.pub
+
+yc compute instance create \
+  --name worker1 \
+  --hostname worker1 \
+  --platform standard-v3 \
+  --memory 8GB \
+  --cores 4 \
+  --core-fraction 100 \
+  --zone ru-central1-a \
+  --network-interface subnet-name=default-ru-central1-a,nat-ip-version=ipv4,nat-address=51.250.66.131 \
+  --create-boot-disk image-folder-id=standard-images,image-family=ubuntu-2004-lts,type=network-ssd,size=50 \
+  --ssh-key ~/.ssh/id_rsa.pub
+
+
+# Если уже подключались по этому IP на другой витруалке - нужно удалить хост из файлика hosts
+# ssh-keygen -f "/home/lackros/.ssh/known_hosts" -R "84.252.128.77"
+# Подключаемся к мастер ноде
+ssh yc-user@84.252.128.77
+
+# Установка Docker
+sudo apt remove docker docker-engine docker.io containerd runc
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io
+
+# Установка kubeadm
+sudo apt update && sudo apt install -y apt-transport-https curl
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
+deb https://apt.kubernetes.io/ kubernetes-xenial main
+EOF
+sudo apt update
+sudo apt install -y kubelet kubeadm kubectl
+sudo apt-mark hold kubelet kubeadm kubectl
+sudo apt install kubeadm=1.19.16-00 kubelet=1.19.16-00 kubectl=1.19.16-00
+
+# Установка k8s панель управления
+sudo kubeadm init --pod-network-cidr=10.244.0.0/16
+
+# Команда для добавления воркер-ноды в кластер
+kubeadm join 10.128.0.13:6443 --token m1j86s.i1ggzvm4ibl0xzpn \
+    --discovery-token-ca-cert-hash sha256:27c7f8cb9fcb118e4ec1d73b411f727960383d5a1b239513102df1d7905ee9ae
+
+
+
+# Запуск master ноды
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+# Подключаемся к worker ноде
+ssh yc-user@51.250.66.131
+
+# Устанавливаем докер и кубер аналогично как на master
+
+# Добавляем воркен в кластер
+sudo kubeadm join 10.128.0.13:6443 --token m1j86s.i1ggzvm4ibl0xzpn \
+    --discovery-token-ca-cert-hash sha256:27c7f8cb9fcb118e4ec1d73b411f727960383d5a1b239513102df1d7905ee9ae
+
+# Переключаемся на master ноду и устанавливаем драйвер Calico
+curl https://projectcalico.docs.tigera.io/manifests/calico.yaml -O
+vi calico.yaml
+/CALICO_IPV4POOL_CIDR
+# интер, раскомменчиваем этот параметр и значение, значение ставим value: "10.244.0.0/16", сохраняемся и применяем драйвер
+kubectl apply -f calico.yaml
+
+# Немного ждем и проверяем состояние кластера
+kubectl get nodes
+
+# Должно выглядеть так:
+# NAME      STATUS   ROLES    AGE   VERSION
+# master1   Ready    master   95m   v1.19.16
+# worker1   Ready    <none>   21m   v1.19.16
+
+
+# Клонируем свой репозиторий в мастер и запускаем
+kubectl apply -f comment-deployment.yml
+kubectl apply -f mongo-deployment.yml
+kubectl apply -f post-deployment.yml
+kubectl apply -f ui-deployment.yml
+
+# Ждем 2-3 минутки и проверяем
+kubectl get pods
+
+# На выводе должно быть примерно так
+# NAME                                  READY   STATUS    RESTARTS   AGE
+# comment-deployment-6fd5474494-44cj7   1/1     Running   0          5m15s
+# mongo-deployment-796dd87796-8kdmh     1/1     Running   0          5m4s
+# post-deployment-799c77ffb-244wd       1/1     Running   0          4m52s
+# ui-deployment-7998b8c4c6-b2cr9        1/1     Running   0          4m42s
