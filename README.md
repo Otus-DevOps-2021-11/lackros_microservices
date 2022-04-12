@@ -79,3 +79,4 @@ lackros microservices repository
  - Поднят reddit в локальном окружении кубернетис
  - Развернут контейнерный оркестратор в облаке yandex
  - Поднят reddit в облачном оркестраторе
+ - https://github.com/Otus-DevOps-2021-11/lackros_microservices/blob/kubernetes-2/kubernetes/ya_k8s_reddit.png
