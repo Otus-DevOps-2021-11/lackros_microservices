@@ -102,3 +102,6 @@ kubectl get pods
 # mongo-deployment-796dd87796-8kdmh     1/1     Running   0          5m4s
 # post-deployment-799c77ffb-244wd       1/1     Running   0          4m52s
 # ui-deployment-7998b8c4c6-b2cr9        1/1     Running   0          4m42s
+
+# Удаляем виртуалки
+yc compute instance delete master1 worker1
