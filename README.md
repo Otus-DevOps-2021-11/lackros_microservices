@@ -80,3 +80,11 @@ lackros microservices repository
  - Развернут контейнерный оркестратор в облаке yandex
  - Поднят reddit в облачном оркестраторе
  - ![Скриншот работающего reddit в облачном оркестраторе](https://github.com/Otus-DevOps-2021-11/lackros_microservices/blob/kubernetes-2/kubernetes/ya_k8s_reddit.png)
+
+
+# Выполнено ДЗ по Лекции №28: Основные модели безопасности и контроллеры в Kubernetes
+ - Развернут контейнерный оркестратор в облаке yandex
+ - Сначала установлен LoadBalancer, затем классический LoadBalancer
+ - Затем установлен Ingress
+ - Сгенерирован TLS сертификат и настроен ингресс на https трафик
+ - Создан PersitentVolume и подключен к сервису MongoDB
